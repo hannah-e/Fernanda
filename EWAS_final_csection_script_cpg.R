@@ -108,22 +108,23 @@ covariates_m8 <- c("smoking_mum",
                    "bmi_mum",
                    "Bcell_child", "Mono_child", "CD4T_child", "CD8T_child", "Gran_child", "NK_child")
   #cell type models
-  #at birth
+   #childhood
 covariates_m9 <- c("smoking_mum",
-                   "male_sex",
-                   "education_mum",
-                   "nulliparous",
-                   "gestational_age",
-                   "birthweight",
-                   "bmi_mum")
-  #childhood
-covariates_m10 <- c("smoking_mum",
                     "male_sex",
                     "education_mum",
                     "nulliparous",
                     "age_child",
                     "birthweight",
                     "bmi_mum")
+#at birth
+covariates_m10 <- c("smoking_mum",
+                   "male_sex",
+                   "education_mum",
+                   "nulliparous",
+                   "gestational_age",
+                   "birthweight",
+                   "bmi_mum")
+
 
 #create SV function
 SV.generate <- function(meth.matrix, pheno.data, variable.of.interest, model.covariates,n.sv, model_n){ 
@@ -142,12 +143,13 @@ SV.generate <- function(meth.matrix, pheno.data, variable.of.interest, model.cov
 }
 
 #add SVs to the phenotype dataset
-pheno.sv.m10_Mono_child <- SV.generate(norm.beta.random, samplepheno[samplepheno$time_point==timepoint2,], "Mono_child", covariates_m10, n.sv=20, "m10_Mono_child")
-pheno.sv.m10_CD8T_child <- SV.generate(norm.beta.random, samplepheno[samplepheno$time_point==timepoint2,], "CD8T_child", covariates_m10, n.sv=20, "m10_CD8T_child")
-pheno.sv.m10_CD4T_child <- SV.generate(norm.beta.random, samplepheno[samplepheno$time_point==timepoint2,], "CD4T_child", covariates_m10, n.sv=20, "m10_CD4T_child")
-pheno.sv.m10_NK_child <- SV.generate(norm.beta.random, samplepheno[samplepheno$time_point==timepoint2,], "NK_child", covariates_m10, n.sv=20, "m10_NK_child")
-pheno.sv.m10_Bcell_child <- SV.generate(norm.beta.random, samplepheno[samplepheno$time_point==timepoint2,], "Bcell_child", covariates_m10, n.sv=20, "m10_Bcell_child")
-pheno.sv.m10_Gran_child <- SV.generate(norm.beta.random, samplepheno[samplepheno$time_point==timepoint2,], "Gran_child", covariates_m10, n.sv=20, "m10_Gran_child")
+#here we are generating SVs using methylation at timepoint==cord
+pheno.sv.m10_Mono_child <- SV.generate(norm.beta.random, samplepheno[samplepheno$time_point==timepoint,], "Mono_child", covariates_m10, n.sv=20, "m10_Mono_child")
+pheno.sv.m10_CD8T_child <- SV.generate(norm.beta.random, samplepheno[samplepheno$time_point==timepoint,], "CD8T_child", covariates_m10, n.sv=20, "m10_CD8T_child")
+pheno.sv.m10_CD4T_child <- SV.generate(norm.beta.random, samplepheno[samplepheno$time_point==timepoint,], "CD4T_child", covariates_m10, n.sv=20, "m10_CD4T_child")
+pheno.sv.m10_NK_child <- SV.generate(norm.beta.random, samplepheno[samplepheno$time_point==timepoint,], "NK_child", covariates_m10, n.sv=20, "m10_NK_child")
+pheno.sv.m10_Bcell_child <- SV.generate(norm.beta.random, samplepheno[samplepheno$time_point==timepoint,], "Bcell_child", covariates_m10, n.sv=20, "m10_Bcell_child")
+pheno.sv.m10_Gran_child <- SV.generate(norm.beta.random, samplepheno[samplepheno$time_point==timepoint,], "Gran_child", covariates_m10, n.sv=20, "m10_Gran_child")
 
 sv_per_model <- mget(ls(pattern = "^pheno.sv.m"))
 combined.svs <- reduce(sv_per_model, full_join, by = 'Sample_Name') 
@@ -205,6 +207,15 @@ dim(combined.beta)
 Pheno <- combined.pheno
 meth <- combined.beta
 
+#For transparency, subset methylation data to cord
+identical(Pheno$Sample_Name, colnames(meth))
+
+Pheno<-Pheno[Pheno$time_point=="cord",]
+meth <- meth[,Pheno$time_point=="cord"]
+
+dim(Pheno)
+dim(meth)
+
 # change variable names from the phenodata
 Pheno$ID <- as.character(Pheno$Sample_Name)
 
@@ -214,12 +225,12 @@ meth <- meth[c("cg19423175", "cg01500140", "cg13917614", "cg18247172", "cg223483
 
 # set the models
 
-mod_form10a_cpg  <- formula("Mono_child ~ CpG + sv1_m10_Mono_child + sv2_m10_Mono_child + sv3_m10_Mono_child + sv4_m10_Mono_child + sv5_m10_Mono_child + sv6_m10_Mono_child + sv7_m10_Mono_child + sv8_m10_Mono_child + sv9_m10_Mono_child + sv10_m10_Mono_child + sv11_m10_Mono_child + sv12_m10_Mono_child + sv13_m10_Mono_child + sv14_m10_Mono_child + sv15_m10_Mono_child + sv16_m10_Mono_child + sv17_m10_Mono_child + sv18_m10_Mono_child + sv19_m10_Mono_child + sv20_m10_Mono_child + smoking_mum + male_sex + education_mum + nulliparous + age_child + birthweight + bmi_mum")
-mod_form10b_cpg  <- formula("CD8T_child ~ CpG + sv1_m10_CD8T_child + sv2_m10_CD8T_child + sv3_m10_CD8T_child + sv4_m10_CD8T_child + sv5_m10_CD8T_child + sv6_m10_CD8T_child + sv7_m10_CD8T_child + sv8_m10_CD8T_child + sv9_m10_CD8T_child + sv10_m10_CD8T_child + sv11_m10_CD8T_child + sv12_m10_CD8T_child + sv13_m10_CD8T_child + sv14_m10_CD8T_child + sv15_m10_CD8T_child + sv16_m10_CD8T_child + sv17_m10_CD8T_child + sv18_m10_CD8T_child + sv19_m10_CD8T_child + sv20_m10_CD8T_child + smoking_mum + male_sex + education_mum + nulliparous + age_child + birthweight + bmi_mum")
-mod_form10c_cpg  <- formula("CD4T_child ~ CpG + sv1_m10_CD4T_child + sv2_m10_CD4T_child + sv3_m10_CD4T_child + sv4_m10_CD4T_child + sv5_m10_CD4T_child + sv6_m10_CD4T_child + sv7_m10_CD4T_child + sv8_m10_CD4T_child + sv9_m10_CD4T_child + sv10_m10_CD4T_child + sv11_m10_CD4T_child + sv12_m10_CD4T_child + sv13_m10_CD4T_child + sv14_m10_CD4T_child + sv15_m10_CD4T_child + sv16_m10_CD4T_child + sv17_m10_CD4T_child + sv18_m10_CD4T_child + sv19_m10_CD4T_child + sv20_m10_CD4T_child + smoking_mum + male_sex + education_mum + nulliparous + age_child + birthweight + bmi_mum")
-mod_form10d_cpg  <- formula("NK_child ~ CpG + sv1_m10_NK_child + sv2_m10_NK_child + sv3_m10_NK_child + sv4_m10_NK_child + sv5_m10_NK_child + sv6_m10_NK_child + sv7_m10_NK_child + sv8_m10_NK_child + sv9_m10_NK_child + sv10_m10_NK_child + sv11_m10_NK_child + sv12_m10_NK_child + sv13_m10_NK_child + sv14_m10_NK_child + sv15_m10_NK_child + sv16_m10_NK_child + sv17_m10_NK_child + sv18_m10_NK_child + sv19_m10_NK_child + sv20_m10_NK_child + smoking_mum + male_sex + education_mum + nulliparous + age_child + birthweight + bmi_mum")
-mod_form10e_cpg  <- formula("Bcell_child ~ CpG + sv1_m10_Bcell_child + sv2_m10_Bcell_child + sv3_m10_Bcell_child + sv4_m10_Bcell_child + sv5_m10_Bcell_child + sv6_m10_Bcell_child + sv7_m10_Bcell_child + sv8_m10_Bcell_child + sv9_m10_Bcell_child + sv10_m10_Bcell_child + sv11_m10_Bcell_child + sv12_m10_Bcell_child + sv13_m10_Bcell_child + sv14_m10_Bcell_child + sv15_m10_Bcell_child + sv16_m10_Bcell_child + sv17_m10_Bcell_child + sv18_m10_Bcell_child + sv19_m10_Bcell_child + sv20_m10_Bcell_child + smoking_mum + male_sex + education_mum + nulliparous + age_child + birthweight + bmi_mum")
-mod_form10f_cpg  <- formula("Gran_child ~ CpG + sv1_m10_Gran_child + sv2_m10_Gran_child + sv3_m10_Gran_child + sv4_m10_Gran_child + sv5_m10_Gran_child + sv6_m10_Gran_child + sv7_m10_Gran_child + sv8_m10_Gran_child + sv9_m10_Gran_child + sv10_m10_Gran_child + sv11_m10_Gran_child + sv12_m10_Gran_child + sv13_m10_Gran_child + sv14_m10_Gran_child + sv15_m10_Gran_child + sv16_m10_Gran_child + sv17_m10_Gran_child + sv18_m10_Gran_child + sv19_m10_Gran_child + sv20_m10_Gran_child + smoking_mum + male_sex + education_mum + nulliparous + age_child + birthweight + bmi_mum")
+mod_form10a_cpg  <- formula("Mono_child ~ CpG + sv1_m10_Mono_child + sv2_m10_Mono_child + sv3_m10_Mono_child + sv4_m10_Mono_child + sv5_m10_Mono_child + sv6_m10_Mono_child + sv7_m10_Mono_child + sv8_m10_Mono_child + sv9_m10_Mono_child + sv10_m10_Mono_child + sv11_m10_Mono_child + sv12_m10_Mono_child + sv13_m10_Mono_child + sv14_m10_Mono_child + sv15_m10_Mono_child + sv16_m10_Mono_child + sv17_m10_Mono_child + sv18_m10_Mono_child + sv19_m10_Mono_child + sv20_m10_Mono_child + smoking_mum + male_sex + education_mum + nulliparous + gestational_age + birthweight + bmi_mum")
+mod_form10b_cpg  <- formula("CD8T_child ~ CpG + sv1_m10_CD8T_child + sv2_m10_CD8T_child + sv3_m10_CD8T_child + sv4_m10_CD8T_child + sv5_m10_CD8T_child + sv6_m10_CD8T_child + sv7_m10_CD8T_child + sv8_m10_CD8T_child + sv9_m10_CD8T_child + sv10_m10_CD8T_child + sv11_m10_CD8T_child + sv12_m10_CD8T_child + sv13_m10_CD8T_child + sv14_m10_CD8T_child + sv15_m10_CD8T_child + sv16_m10_CD8T_child + sv17_m10_CD8T_child + sv18_m10_CD8T_child + sv19_m10_CD8T_child + sv20_m10_CD8T_child + smoking_mum + male_sex + education_mum + nulliparous + gestational_age + birthweight + bmi_mum")
+mod_form10c_cpg  <- formula("CD4T_child ~ CpG + sv1_m10_CD4T_child + sv2_m10_CD4T_child + sv3_m10_CD4T_child + sv4_m10_CD4T_child + sv5_m10_CD4T_child + sv6_m10_CD4T_child + sv7_m10_CD4T_child + sv8_m10_CD4T_child + sv9_m10_CD4T_child + sv10_m10_CD4T_child + sv11_m10_CD4T_child + sv12_m10_CD4T_child + sv13_m10_CD4T_child + sv14_m10_CD4T_child + sv15_m10_CD4T_child + sv16_m10_CD4T_child + sv17_m10_CD4T_child + sv18_m10_CD4T_child + sv19_m10_CD4T_child + sv20_m10_CD4T_child + smoking_mum + male_sex + education_mum + nulliparous + gestational_age + birthweight + bmi_mum")
+mod_form10d_cpg  <- formula("NK_child ~ CpG + sv1_m10_NK_child + sv2_m10_NK_child + sv3_m10_NK_child + sv4_m10_NK_child + sv5_m10_NK_child + sv6_m10_NK_child + sv7_m10_NK_child + sv8_m10_NK_child + sv9_m10_NK_child + sv10_m10_NK_child + sv11_m10_NK_child + sv12_m10_NK_child + sv13_m10_NK_child + sv14_m10_NK_child + sv15_m10_NK_child + sv16_m10_NK_child + sv17_m10_NK_child + sv18_m10_NK_child + sv19_m10_NK_child + sv20_m10_NK_child + smoking_mum + male_sex + education_mum + nulliparous + gestational_age + birthweight + bmi_mum")
+mod_form10e_cpg  <- formula("Bcell_child ~ CpG + sv1_m10_Bcell_child + sv2_m10_Bcell_child + sv3_m10_Bcell_child + sv4_m10_Bcell_child + sv5_m10_Bcell_child + sv6_m10_Bcell_child + sv7_m10_Bcell_child + sv8_m10_Bcell_child + sv9_m10_Bcell_child + sv10_m10_Bcell_child + sv11_m10_Bcell_child + sv12_m10_Bcell_child + sv13_m10_Bcell_child + sv14_m10_Bcell_child + sv15_m10_Bcell_child + sv16_m10_Bcell_child + sv17_m10_Bcell_child + sv18_m10_Bcell_child + sv19_m10_Bcell_child + sv20_m10_Bcell_child + smoking_mum + male_sex + education_mum + nulliparous + gestational_age + birthweight + bmi_mum")
+mod_form10f_cpg  <- formula("Gran_child ~ CpG + sv1_m10_Gran_child + sv2_m10_Gran_child + sv3_m10_Gran_child + sv4_m10_Gran_child + sv5_m10_Gran_child + sv6_m10_Gran_child + sv7_m10_Gran_child + sv8_m10_Gran_child + sv9_m10_Gran_child + sv10_m10_Gran_child + sv11_m10_Gran_child + sv12_m10_Gran_child + sv13_m10_Gran_child + sv14_m10_Gran_child + sv15_m10_Gran_child + sv16_m10_Gran_child + sv17_m10_Gran_child + sv18_m10_Gran_child + sv19_m10_Gran_child + sv20_m10_Gran_child + smoking_mum + male_sex + education_mum + nulliparous + gestational_age + birthweight + bmi_mum")
 
 
 #################################################################
